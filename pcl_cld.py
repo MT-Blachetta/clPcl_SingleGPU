@@ -44,7 +44,10 @@ def main():
     
     
     instance_model = get_instance_model(p, backbone)
+    instance_head = instance_model.encoder_q.contrastive_head
+    
     group_model = get_group_model(p, backbone)
+    group_head = group_model.contrastive_head
     print('Model is {}'.format(instance_model.__class__.__name__))
     print('Model parameters: {:.2f}M'.format(sum(p.numel() for p in instance_model.parameters()) / 1e6))
     print(instance_model)
@@ -117,10 +120,23 @@ def main():
     M_num_clusters = get_clustering(p)
  
     #6# Checkpoint to continue last training phase                             OK
+    if os.path.exists(p['pretext_checkpoint_backbone']):
+        print(colored('Restart from checkpoint (backbone) {}'.format(p['pretext_checkpoint_backbone']), 'blue'))
+        checkpoint = torch.load(p['pretext_checkpoint_backbone'], map_location='cpu')
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        backbone.load_state_dict(checkpoint['model'])
+        #backbone.cuda()
+        start_epoch = checkpoint['epoch']
+    else:
+        print(colored('No checkpoint file at {}'.format(p['pretext_checkpoint']), 'blue'))
+        start_epoch = 0
+      
+  
     if os.path.exists(p['pretext_checkpoint_instance']):
         print(colored('Restart from checkpoint (instance_model) {}'.format(p['pretext_checkpoint_instance']), 'blue'))
         checkpoint = torch.load(p['pretext_checkpoint_instance'], map_location='cpu')
         optimizer.load_state_dict(checkpoint['optimizer'])
+        instance_head # instance_model.encoder_q.contrastive_head
         instance_model.load_state_dict(checkpoint['model'])
         instance_model.cuda()
         start_epoch = checkpoint['epoch']

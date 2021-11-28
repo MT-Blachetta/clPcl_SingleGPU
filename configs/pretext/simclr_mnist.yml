@@ -1,0 +1,58 @@
+# Setup
+setup: simclr
+
+# Model
+backbone: mnet
+model_kwargs:
+   head: linear
+   features_dim: 64
+
+# Dataset
+train_db_name: mnist
+val_db_name: mnist
+num_classes: 10
+
+# Loss
+criterion: simclr
+criterion_kwargs:
+   temperature: 0.1 
+
+# Hyperparameters
+epochs: 100
+optimizer: sgd
+optimizer_kwargs:
+   nesterov: False
+   weight_decay: 0.0001 
+   momentum: 0.9
+   lr: 0.4
+scheduler: cosine
+scheduler_kwargs:
+   lr_decay_rate: 0.1
+batch_size: 128
+num_workers: 8
+# DEFAULT = num_workers: 8
+
+# Transformations
+augmentation_strategy: simclr 
+augmentation_kwargs:
+   random_resized_crop:
+      size: 28
+      scale: [0.3, 1.0]
+   color_jitter_random_apply:
+      p: 0.8
+   color_jitter:
+      brightness: 0.4
+      contrast: 0.4
+      saturation: 0.4
+      hue: 0.1
+   random_grayscale: 
+      p: 0.2
+   normalize:
+      mean: [0.13]
+      std: [0.3]
+
+transformation_kwargs:
+   crop_size: 28
+   normalize:
+      mean: [0.1307]
+      std: [0.3081]

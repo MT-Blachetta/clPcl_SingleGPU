@@ -29,6 +29,7 @@ def create_config(config_file_env, config_file_exp):
     mkdir_if_missing(pretext_dir)
     cfg['pretext_dir'] = pretext_dir
     cfg['pretext_checkpoint'] = os.path.join(pretext_dir, 'checkpoint.pth.tar')
+    cfg['pretext_checkpoint_backbone'] = os.path.join(pretext_dir, 'backbone_checkpoint.pth.tar')
     cfg['pretext_checkpoint_instance'] = os.path.join(pretext_dir, 'instance_checkpoint.pth.tar')
     cfg['pretext_checkpoint_group'] = os.path.join(pretext_dir, 'group_checkpoint.pth.tar')
     cfg['pretext_model'] = os.path.join(pretext_dir, 'model.pth.tar')

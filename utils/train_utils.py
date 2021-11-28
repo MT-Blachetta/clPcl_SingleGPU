@@ -219,11 +219,14 @@ def pcl_cld_train(train_loader, instance_branch, group_branch, criterion, optimi
             zmatrix = zmatrix*zmatrix
             result = zmatrix.flatten(0).view(batch_size,k,feature_dim)
             result = torch.sum(result,2)
+            result = torch.sqrt(result)
 
             zmatrix_I = fmatrix_I-cmatrix_I
             zmatrix_I = zmatrix_I*zmatrix_I
             result_I = zmatrix_I.flatten(0).view(batch_size,k,feature_dim)
             result_I = torch.sum(result_I,2)
+            result_I = torch.sqrt(result_I)
+            
             assign = torch.zeros(batch_size,k)
             assign_I = torch.zeros(batch_size,k)
 

@@ -183,7 +183,7 @@ def pcl_cld_train(train_loader, instance_branch, group_branch, criterion, optimi
             #skm.fit(ov)
             clusterer_I = KMeansClusterer(k, distance=nltk.cluster.util.cosine_distance, repeats=20, normalise=True, avoid_empty_clusters=True)
             labels_ = clusterer.cluster(ov,True)
-            Ilabels_ = clusterer_I.cluster(av,True)
+            labels_I = clusterer_I.cluster(av,True)
             cluster_centers = torch.Tensor( np.array(clusterer.means()) ) 
             cluster_centers_I = torch.Tensor( np.array(clusterer_I.means()) )
              
@@ -256,7 +256,7 @@ def pcl_cld_train(train_loader, instance_branch, group_branch, criterion, optimi
             concentration_matrices_I.append(concentrations_I)
             
             M_labels.append( labels_ )
-            M_labels_I.append( Ilabels_ )
+            M_labels_I.append( labels_I )
 #-------------------------------------------------------------------------------------------------------
 #group_loss = pcl_cld_loss(original_view,augmented_view,M_kmeans_results,MI_kmeans_results,concentration_matrices,concentration_matrices_I)
         group_loss = criterion( features = original_view, features_I = augmented_view, M_kmeans = M_kmeans_results , M_kmeans_I = MI_kmeans_results, concentrations = concentration_matrices, concentrations_I = concentration_matrices_I,labels = M_labels, labels_I = M_labels_I, lb = 1)

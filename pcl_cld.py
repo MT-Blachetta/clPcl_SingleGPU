@@ -131,7 +131,7 @@ def main():
         #backbone.cuda()
         start_epoch = checkpoint['epoch']
     else:
-        print(colored('No checkpoint file at {}'.format(p['pretext_checkpoint']), 'blue'))
+        print(colored('No checkpoint file at {}'.format(p['pretext_checkpoint_backbone']), 'blue'))
         start_epoch = 0
       
   
@@ -146,7 +146,7 @@ def main():
         start_epoch = checkpoint['epoch']
 
     else:
-        print(colored('No checkpoint file at {}'.format(p['pretext_checkpoint']), 'blue'))
+        print(colored('No checkpoint file at {}'.format(p['pretext_checkpoint_instance']), 'blue'))
         start_epoch = 0
         instance_model = instance_model.cuda()
         
@@ -161,7 +161,7 @@ def main():
         start_epoch = checkpoint['epoch']
         
     else:
-        print(colored('No checkpoint file at {}'.format(p['pretext_checkpoint']), 'blue'))
+        print(colored('No checkpoint file at {}'.format(p['pretext_checkpoint_group']), 'blue'))
         start_epoch = 0
         group_model = group_model.cuda()
         

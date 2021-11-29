@@ -37,6 +37,12 @@ class ContrastiveModel(nn.Module):
         
     def get_head(self):
         return self.contrastive_head
+    
+    def set_backbone(self,model):
+        self.backbone = model
+        
+    def get_backbone(self):
+        return self.backbone
 
 
 class ClusteringModel(nn.Module):

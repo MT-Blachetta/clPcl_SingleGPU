@@ -58,7 +58,7 @@ def main():
     #instance_model = instance_model.cuda()
     #group_model = group_model.cuda()
    
-     #> CUDNN
+    #> CUDNN
     print(colored('Set CuDNN benchmark', 'blue')) 
     torch.backends.cudnn.benchmark = True    
     ###
@@ -126,8 +126,8 @@ def main():
         checkpoint = torch.load(p['pretext_checkpoint_backbone'], map_location='cpu')
         optimizer.load_state_dict(checkpoint['optimizer'])
         backbone_model.load_state_dict(checkpoint['model'])
-	instance_model.set_backbone(backbone_model)
-	group_model.set_backbone(backbone_model)
+        instance_model.set_backbone(backbone_model)
+        group_model.set_backbone(backbone_model)
         #backbone.cuda()
         start_epoch = checkpoint['epoch']
     else:
@@ -141,7 +141,7 @@ def main():
         optimizer.load_state_dict(checkpoint['optimizer'])
         instance_head.load_state_dict(checkpoint['model'])  
         
-	instance_model.set_head(instance_head)
+        instance_model.set_head(instance_head)
         instance_model = instance_model.cuda()
         start_epoch = checkpoint['epoch']
 
@@ -155,8 +155,8 @@ def main():
         checkpoint = torch.load(p['pretext_checkpoint_group'], map_location='cpu')
         optimizer.load_state_dict(checkpoint['optimizer'])
         group_head.load_state_dict(checkpoint['model'])
-	
-	group_model.set_head(group_head)
+
+        group_model.set_head(group_head)
         group_model = group_model.cuda()
         start_epoch = checkpoint['epoch']
         

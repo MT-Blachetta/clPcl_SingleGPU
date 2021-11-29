@@ -44,15 +44,19 @@ def main():
     
     
     instance_model = get_instance_model(p, backbone)
+    instance_head = instance_model.get_head()
+    
     group_model = get_group_model(p, backbone)
+    group_head = group_model.get_head()
+    backbone_model = group_model.get_backbone()
     print('Model is {}'.format(instance_model.__class__.__name__))
     print('Model parameters: {:.2f}M'.format(sum(p.numel() for p in instance_model.parameters()) / 1e6))
     print(instance_model)
     print('Model is {}'.format(group_model.__class__.__name__))
     print('Model parameters: {:.2f}M'.format(sum(p.numel() for p in group_model.parameters()) / 1e6))
     print(group_model)
-    instance_model = instance_model.cuda()
-    group_model = group_model.cuda()
+    #instance_model = instance_model.cuda()
+    #group_model = group_model.cuda()
    
      #> CUDNN
     print(colored('Set CuDNN benchmark', 'blue')) 
@@ -117,12 +121,28 @@ def main():
     M_num_clusters = get_clustering(p)
  
     #6# Checkpoint to continue last training phase                             OK
+    if os.path.exists(p['pretext_checkpoint_backbone']):
+        print(colored('Restart from checkpoint (backbone) {}'.format(p['pretext_checkpoint_backbone']), 'blue'))
+        checkpoint = torch.load(p['pretext_checkpoint_backbone'], map_location='cpu')
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        backbone_model.load_state_dict(checkpoint['model'])
+	instance_model.set_backbone(backbone_model)
+	group_model.set_backbone(backbone_model)
+        #backbone.cuda()
+        start_epoch = checkpoint['epoch']
+    else:
+        print(colored('No checkpoint file at {}'.format(p['pretext_checkpoint']), 'blue'))
+        start_epoch = 0
+      
+  
     if os.path.exists(p['pretext_checkpoint_instance']):
         print(colored('Restart from checkpoint (instance_model) {}'.format(p['pretext_checkpoint_instance']), 'blue'))
         checkpoint = torch.load(p['pretext_checkpoint_instance'], map_location='cpu')
         optimizer.load_state_dict(checkpoint['optimizer'])
-        instance_model.load_state_dict(checkpoint['model'])
-        instance_model.cuda()
+        instance_head.load_state_dict(checkpoint['model'])  
+        
+	instance_model.set_head(instance_head)
+        instance_model = instance_model.cuda()
         start_epoch = checkpoint['epoch']
 
     else:
@@ -134,8 +154,10 @@ def main():
         print(colored('Restart from checkpoint (group_model) {}'.format(p['pretext_checkpoint_group']), 'blue'))
         checkpoint = torch.load(p['pretext_checkpoint_group'], map_location='cpu')
         optimizer.load_state_dict(checkpoint['optimizer'])
-        group_model.load_state_dict(checkpoint['model'])
-        group_model.cuda()
+        group_head.load_state_dict(checkpoint['model'])
+	
+	group_model.set_head(group_head)
+        group_model = group_model.cuda()
         start_epoch = checkpoint['epoch']
         
     else:
@@ -170,10 +192,14 @@ def main():
         
         #e - Checkpoint
         print('Checkpoint ...')
-        torch.save({'optimizer': optimizer.state_dict(), 'model': instance_model.state_dict(), 
+        
+        torch.save({'optimizer': optimizer.state_dict(), 'model': group_model.get_backbone().state_dict(), 
+                    'epoch': epoch + 1}, p['pretext_checkpoint_backbone'])
+        
+        torch.save({'optimizer': optimizer.state_dict(), 'model': instance_model.get_head().state_dict(), 
                     'epoch': epoch + 1}, p['pretext_checkpoint_instance'])
                     
-        torch.save({'optimizer': optimizer.state_dict(), 'model': group_model.state_dict(), 
+        torch.save({'optimizer': optimizer.state_dict(), 'model': group_model.get_head().state_dict(), 
                     'epoch': epoch + 1}, p['pretext_checkpoint_group'])
                     
         

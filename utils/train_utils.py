@@ -5,7 +5,8 @@ Licensed under the CC BY-NC 4.0 license (https://creativecommons.org/licenses/by
 import torch
 import numpy as np
 #from spherecluster import VonMisesFisherMixture
-from spherecluster import SphericalKMeans
+import nltk
+from nltk.cluster.kmeans import KMeansClusterer
 from utils.utils import AverageMeter, ProgressMeter
 
 
@@ -177,16 +178,23 @@ def pcl_cld_train(train_loader, instance_branch, group_branch, criterion, optimi
 
         for k in M_num_clusters:
             #from spherecluster import SphericalKMeans
-            skm = SphericalKMeans(n_clusters=k)
-            skm.fit(ov)
-            skm_I = SphericalKMeans(n_clusters=k)
-            skm_I.fit(av)
+            clusterer = KMeansClusterer(k, distance=nltk.cluster.util.cosine_distance, repeats=20, normalise=True, avoid_empty_clusters=True)
+            #skm = SphericalKMeans(n_clusters=k)
+            #skm.fit(ov)
+            clusterer_I = KMeansClusterer(k, distance=nltk.cluster.util.cosine_distance, repeats=20, normalise=True, avoid_empty_clusters=True)
+            labels_ = clusterer.cluster(ov,True)
+            labels_I = clusterer_I.cluster(av,True)
+            cluster_centers = torch.Tensor( np.array(clusterer.means()) ) 
+            cluster_centers_I = torch.Tensor( np.array(clusterer_I.means()) )
+             
+            #skm_I = SphericalKMeans(n_clusters=k)
+            #skm_I.fit(av)
 
-            M_kmeans_results.append(torch.Tensor(skm.cluster_centers_))
-            MI_kmeans_results.append(torch.Tensor(skm_I.cluster_centers_))
+            M_kmeans_results.append( cluster_centers )
+            MI_kmeans_results.append( cluster_centers_I )
             # c -> k
-            center = [ torch.Tensor(skm.cluster_centers_[i]) for i in range(len(skm.cluster_centers_)) ]
-            center_I = [ torch.Tensor(skm_I.cluster_centers_[i]) for i in range(len(skm_I.cluster_centers_)) ]
+            center = [ cluster_centers[i] for i in range(k) ]
+            center_I = [ cluster_centers_I[i] for i in range(k) ]
             cdat = [ x.unsqueeze(0).expand(batch_size,feature_dim) for x in center]
             cmatrix = torch.cat(cdat,1)
             cdat_I = [ x.unsqueeze(0).expand(batch_size,feature_dim) for x in center_I]
@@ -211,11 +219,14 @@ def pcl_cld_train(train_loader, instance_branch, group_branch, criterion, optimi
             zmatrix = zmatrix*zmatrix
             result = zmatrix.flatten(0).view(batch_size,k,feature_dim)
             result = torch.sum(result,2)
+            result = torch.sqrt(result)
 
             zmatrix_I = fmatrix_I-cmatrix_I
             zmatrix_I = zmatrix_I*zmatrix_I
             result_I = zmatrix_I.flatten(0).view(batch_size,k,feature_dim)
             result_I = torch.sum(result_I,2)
+            result_I = torch.sqrt(result_I)
+            
             assign = torch.zeros(batch_size,k)
             assign_I = torch.zeros(batch_size,k)
 
@@ -244,8 +255,8 @@ def pcl_cld_train(train_loader, instance_branch, group_branch, criterion, optimi
             concentration_matrices.append(concentrations)
             concentration_matrices_I.append(concentrations_I)
             
-            M_labels.append( skm.labels_ )
-            M_labels_I.append( skm_I.labels_ )
+            M_labels.append( labels_ )
+            M_labels_I.append( labels_I )
 #-------------------------------------------------------------------------------------------------------
 #group_loss = pcl_cld_loss(original_view,augmented_view,M_kmeans_results,MI_kmeans_results,concentration_matrices,concentration_matrices_I)
         group_loss = criterion( features = original_view, features_I = augmented_view, M_kmeans = M_kmeans_results , M_kmeans_I = MI_kmeans_results, concentrations = concentration_matrices, concentrations_I = concentration_matrices_I,labels = M_labels, labels_I = M_labels_I, lb = 1)

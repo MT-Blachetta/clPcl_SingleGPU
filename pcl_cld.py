@@ -44,10 +44,10 @@ def main():
     
     
     instance_model = get_instance_model(p, backbone)
-    instance_head = instance_model.encoder_q.contrastive_head
+    instance_head = instance_model.get_contrastive_head()
     
     group_model = get_group_model(p, backbone)
-    group_head = group_model.contrastive_head
+    group_head = group_model.get_contrastive_head()
     print('Model is {}'.format(instance_model.__class__.__name__))
     print('Model parameters: {:.2f}M'.format(sum(p.numel() for p in instance_model.parameters()) / 1e6))
     print(instance_model)
@@ -136,8 +136,9 @@ def main():
         print(colored('Restart from checkpoint (instance_model) {}'.format(p['pretext_checkpoint_instance']), 'blue'))
         checkpoint = torch.load(p['pretext_checkpoint_instance'], map_location='cpu')
         optimizer.load_state_dict(checkpoint['optimizer'])
-        instance_head # instance_model.encoder_q.contrastive_head
-        instance_model.load_state_dict(checkpoint['model'])
+        instance_head.load_state_dict(checkpoint['model'])  # instance_model.encoder_q.contrastive_head
+        instance_model = get_instance_model(p, backbone)
+	      instance_model.setHead(instance_head)
         instance_model.cuda()
         start_epoch = checkpoint['epoch']
 
@@ -150,7 +151,9 @@ def main():
         print(colored('Restart from checkpoint (group_model) {}'.format(p['pretext_checkpoint_group']), 'blue'))
         checkpoint = torch.load(p['pretext_checkpoint_group'], map_location='cpu')
         optimizer.load_state_dict(checkpoint['optimizer'])
-        group_model.load_state_dict(checkpoint['model'])
+        group_head.load_state_dict(checkpoint['model'])
+	      group_model = get_group_model(p, backbone)
+	      group_model.setHead(group_head)
         group_model.cuda()
         start_epoch = checkpoint['epoch']
         
@@ -186,10 +189,14 @@ def main():
         
         #e - Checkpoint
         print('Checkpoint ...')
-        torch.save({'optimizer': optimizer.state_dict(), 'model': instance_model.state_dict(), 
+        
+        torch.save({'optimizer': optimizer.state_dict(), 'model': group_model.get_backbone().state_dict(), 
+                    'epoch': epoch + 1}, p['pretext_checkpoint_backbone'])
+        
+        torch.save({'optimizer': optimizer.state_dict(), 'model': instance_model.get_contrastive_head().state_dict(), 
                     'epoch': epoch + 1}, p['pretext_checkpoint_instance'])
                     
-        torch.save({'optimizer': optimizer.state_dict(), 'model': group_model.state_dict(), 
+        torch.save({'optimizer': optimizer.state_dict(), 'model': group_model.get_contrastive_head().state_dict(), 
                     'epoch': epoch + 1}, p['pretext_checkpoint_group'])
                     
         

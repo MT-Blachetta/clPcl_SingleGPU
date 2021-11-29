@@ -43,11 +43,11 @@ class MoCo(nn.Module): # Conditions: [+] key_encoder is copy(query_encoder)
 
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
         
-    def get_contrastive_head(self):
-        return self.encoder_q.get_contrastive_head()
+    def get_head(self):
+        return self.encoder_q.get_head()
     
-    def setHead(self,modelhead):
-        self.encoder_q.setHead(modelhead)
+    def set_head(self,modelhead):
+        self.encoder_q.set_head(modelhead)
 
     @torch.no_grad()
     def _momentum_update_key_encoder(self):

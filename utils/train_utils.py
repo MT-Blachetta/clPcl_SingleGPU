@@ -4,6 +4,7 @@ Licensed under the CC BY-NC 4.0 license (https://creativecommons.org/licenses/by
 """
 import torch
 import numpy as np
+import copy
 #from spherecluster import VonMisesFisherMixture
 import nltk
 from nltk.cluster.kmeans import KMeansClusterer

@@ -231,8 +231,8 @@ def pcl_cld_train(train_loader, instance_branch, group_branch, criterion, optimi
             assign_I = torch.zeros(batch_size,k)
 
             for i in range(batch_size):
-              assign[i][ int(skm.labels_[i]) ] = 1
-              assign_I[i][ int(skm_I.labels_[i]) ] = 1
+              assign[i][ int(labels_[i]) ] = 1
+              assign_I[i][ int(labels_I[i]) ] = 1
                 
             assign = assign.cuda()
             assign_I = assign_I.cuda()

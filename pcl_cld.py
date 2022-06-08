@@ -55,8 +55,9 @@ def main():
     print('Model is {}'.format(group_model.__class__.__name__))
     print('Model parameters: {:.2f}M'.format(sum(p.numel() for p in group_model.parameters()) / 1e6))
     print(group_model)
-    #instance_model = instance_model.cuda()
-    #group_model = group_model.cuda()
+    backbone_model = backbone_model.cuda()
+    instance_model = instance_model.cuda()
+    group_model = group_model.cuda()
    
     #> CUDNN
     print(colored('Set CuDNN benchmark', 'blue')) 
@@ -122,8 +123,9 @@ def main():
  
     #6# Checkpoint to continue last training phase                             OK
     if os.path.exists(p['pretext_checkpoint_backbone']):
+        print('ALLES OK')
         print(colored('Restart from checkpoint (backbone) {}'.format(p['pretext_checkpoint_backbone']), 'blue'))
-        checkpoint = torch.load(p['pretext_checkpoint_backbone'], map_location='cpu')
+        checkpoint = torch.load(p['pretext_checkpoint_backbone'], map_location='cuda')
         optimizer.load_state_dict(checkpoint['optimizer'])
         backbone_model.load_state_dict(checkpoint['model'])
         instance_model.set_backbone(backbone_model)
@@ -137,10 +139,10 @@ def main():
   
     if os.path.exists(p['pretext_checkpoint_instance']):
         print(colored('Restart from checkpoint (instance_model) {}'.format(p['pretext_checkpoint_instance']), 'blue'))
-        checkpoint = torch.load(p['pretext_checkpoint_instance'], map_location='cpu')
+        checkpoint = torch.load(p['pretext_checkpoint_instance'], map_location='cuda')
         optimizer.load_state_dict(checkpoint['optimizer'])
         instance_head.load_state_dict(checkpoint['model'])  
-        
+
         instance_model.set_head(instance_head)
         instance_model = instance_model.cuda()
         start_epoch = checkpoint['epoch']
@@ -152,7 +154,7 @@ def main():
         
     if os.path.exists(p['pretext_checkpoint_group']):
         print(colored('Restart from checkpoint (group_model) {}'.format(p['pretext_checkpoint_group']), 'blue'))
-        checkpoint = torch.load(p['pretext_checkpoint_group'], map_location='cpu')
+        checkpoint = torch.load(p['pretext_checkpoint_group'], map_location='cuda')
         optimizer.load_state_dict(checkpoint['optimizer'])
         group_head.load_state_dict(checkpoint['model'])
 

@@ -70,16 +70,16 @@ class MoCo(nn.Module): # Conditions: [+] key_encoder is copy(query_encoder)
         #keys = concat_all_gather(keys)
 
         batch_size = keys.shape[0]
-        print("IN MoCo->_dequeue_and_enqueue: batch_size = "+str(batch_size))
+        #print("IN MoCo->_dequeue_and_enqueue: batch_size = "+str(batch_size))
 
         ptr = int(self.queue_ptr)
-        print("queue_ptr = "+str(ptr))
+        #print("queue_ptr = "+str(ptr))
         assert self.K % batch_size == 0  # for simplicity
 
         # replace the keys at ptr (dequeue and enqueue)
         self.queue[:, ptr:ptr + batch_size] = keys.T
         ptr = (ptr + batch_size) % self.K  # move pointer
-        print("next ptr = "+str(ptr))
+        #print("next ptr = "+str(ptr))
         self.queue_ptr[0] = ptr
 
 
